@@ -1,12 +1,18 @@
-# InvestMe Full-Stack Prototype
+# InvestMe Dynamic Website
 
-This folder contains the InvestMe frontend and a Node.js/Express backend scaffold.
+This is the dynamic InvestMe website with frontend + backend.
 
 ## Frontend
 
-Open `index.html` directly in a browser for the static prototype.
+Open `index.html` in browser.
 
-Pages:
+The frontend connects to:
+
+```text
+http://localhost:5000/api
+```
+
+Frontend pages:
 
 - `index.html`
 - `about.html`
@@ -15,34 +21,55 @@ Pages:
 - `community.html`
 - `pricing.html`
 - `dashboard.html`
-
-The frontend tries to call `http://localhost:5000/api`. If the backend is not running, it uses demo fallback data.
+- `login.html`
 
 ## Backend
 
 Backend code is in `backend/`.
 
-Quick start:
+Run:
 
-```bash
+```powershell
 cd backend
 npm install
-copy .env.example .env
+Copy-Item .env.example .env
 npm run dev
 ```
 
-Demo API accounts:
+## Where To Paste Links And API Keys
+
+Paste everything in:
+
+```text
+backend/.env
+```
+
+Important values:
+
+```text
+WHATSAPP_COMMUNITY_URL=
+TELEGRAM_COMMUNITY_URL=
+FOUNDER_GROUP_URL=
+STRIPE_SECRET_KEY=
+RAZORPAY_KEY_ID=
+RAZORPAY_KEY_SECRET=
+OPENAI_API_KEY=
+JWT_SECRET=
+```
+
+## Database
+
+Local database file:
+
+```text
+backend/data/database.json
+```
+
+It is created automatically when backend runs.
+
+## Demo Login
 
 ```text
 founder@investme.demo / Founder@123
-mentor@investme.demo / Mentor@123
 admin@investme.demo / Admin@123
 ```
-
-Then test:
-
-```bash
-curl http://localhost:5000/api/health
-```
-
-Secrets and API keys go in `backend/.env`, not in source files.

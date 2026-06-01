@@ -1,5 +1,7 @@
 const API_URL = localStorage.getItem("investme-api-url") || "http://localhost:5000/api";
 let authToken = localStorage.getItem("investme-token") || "";
+let currentUser = JSON.parse(localStorage.getItem("investme-user") || "null");
+let currentCheckout = null;
 
 const fallbackMentors = [
   { id: "maya-rao", name: "Maya Rao", designation: "Former Fintech CEO", experienceYears: 18, industry: "Fintech", expertise: ["Fundraising", "GTM", "Board strategy"], rating: 4.96, fee: 149, availability: "Available today", avatar: 2 },
@@ -24,13 +26,17 @@ document.addEventListener("DOMContentLoaded", () => {
   setupNav();
   setupTheme();
   setupApiStatus();
+  setupAuthForms();
+  setupAuthStatus();
   setupMentors();
   setupPricing();
   setupDashboards();
-  setupCommunity();
+  setupCommunityLinks();
   attachBookingButtons();
+  attachPaymentButtons();
   document.addEventListener("click", (event) => {
     if (event.target.matches("[data-modal-close]") || event.target.classList.contains("modal")) closeModal();
+    if (event.target.matches("[data-logout]")) logout();
   });
 });
 
@@ -58,8 +64,9 @@ async function api(path, options = {}) {
   const headers = { "Content-Type": "application/json", ...(options.headers || {}) };
   if (authToken) headers.Authorization = `Bearer ${authToken}`;
   const response = await fetch(`${API_URL}${path}`, { ...options, headers });
-  if (!response.ok) throw new Error(`API ${response.status}`);
-  return response.json();
+  const data = await response.json().catch(() => ({}));
+  if (!response.ok) throw new Error(data.error || `API ${response.status}`);
+  return data;
 }
 
 async function setupApiStatus() {
@@ -69,8 +76,73 @@ async function setupApiStatus() {
     const data = await api("/health");
     target.textContent = `Backend connected: ${data.service}`;
   } catch {
-    target.textContent = "Backend not running. Frontend is using demo fallback data.";
+    target.textContent = "Backend not running. Start backend with: cd backend && npm run dev";
   }
+}
+
+function saveSession(data) {
+  authToken = data.token;
+  currentUser = data.user;
+  localStorage.setItem("investme-token", authToken);
+  localStorage.setItem("investme-user", JSON.stringify(currentUser));
+}
+
+function logout() {
+  authToken = "";
+  currentUser = null;
+  localStorage.removeItem("investme-token");
+  localStorage.removeItem("investme-user");
+  location.href = "login.html";
+}
+
+function setupAuthStatus() {
+  document.querySelectorAll("[data-auth-label]").forEach((target) => {
+    target.textContent = currentUser ? `${currentUser.name} (${currentUser.role})` : "Not logged in";
+  });
+}
+
+function setupAuthForms() {
+  const loginForm = document.querySelector("[data-login-form]");
+  const signupForm = document.querySelector("[data-signup-form]");
+  const output = document.querySelector("[data-auth-output]");
+
+  loginForm?.addEventListener("submit", async (event) => {
+    event.preventDefault();
+    try {
+      const form = new FormData(loginForm);
+      const data = await api("/auth/login", {
+        method: "POST",
+        body: JSON.stringify({ email: form.get("email"), password: form.get("password") })
+      });
+      saveSession(data);
+      output.textContent = "Login successful. Redirecting...";
+      location.href = "dashboard.html";
+    } catch (error) {
+      output.textContent = error.message;
+    }
+  });
+
+  signupForm?.addEventListener("submit", async (event) => {
+    event.preventDefault();
+    try {
+      const form = new FormData(signupForm);
+      const data = await api("/auth/signup", {
+        method: "POST",
+        body: JSON.stringify({
+          name: form.get("name"),
+          email: form.get("email"),
+          password: form.get("password"),
+          role: form.get("role"),
+          startup: form.get("startup")
+        })
+      });
+      saveSession(data);
+      output.textContent = "Account created. Redirecting...";
+      location.href = "dashboard.html";
+    } catch (error) {
+      output.textContent = error.message;
+    }
+  });
 }
 
 async function setupMentors() {
@@ -79,7 +151,7 @@ async function setupMentors() {
   let mentors = fallbackMentors;
   try {
     const data = await api("/mentors");
-    mentors = data.mentors.map((mentor, index) => ({ ...mentor, avatar: index + 1 }));
+    mentors = data.mentors.map((mentor, index) => ({ ...mentor, avatar: (index % 6) + 1 }));
   } catch {
     mentors = fallbackMentors;
   }
@@ -109,8 +181,8 @@ function mentorCard(mentor) {
       <div class="mentor-meta"><span>${mentor.experienceYears} years</span><span>${mentor.industry}</span><span>Rating ${mentor.rating}</span><span>$${mentor.fee}</span></div>
       <ul class="tags">${mentor.expertise.map((item) => `<li class="tag">${item}</li>`).join("")}</ul>
       <div class="card-actions">
-        <button class="btn btn-primary" data-book data-title="Video consultation with ${mentor.name}" data-price="${mentor.fee}">Book Call</button>
-        <button class="btn btn-secondary" data-book data-title="Paid message to ${mentor.name}" data-price="29">Message Now</button>
+        <button class="btn btn-primary" data-book data-title="Video consultation with ${mentor.name}" data-price="${mentor.fee}" data-mentor-id="${mentor.id}" data-type="VIDEO">Book Call</button>
+        <button class="btn btn-secondary" data-book data-title="Paid message to ${mentor.name}" data-price="29" data-mentor-id="${mentor.id}" data-type="MESSAGE">Message Now</button>
       </div>
     </article>
   `;
@@ -147,14 +219,28 @@ function setupDashboards() {
   });
 }
 
-function setupCommunity() {
-  document.querySelector("[data-unlock-community]")?.addEventListener("click", () => {
-    document.querySelectorAll("[data-community-link]").forEach((button) => {
-      button.disabled = false;
-      button.textContent = button.dataset.openText;
+async function setupCommunityLinks() {
+  const links = document.querySelectorAll("[data-community-url]");
+  if (!links.length) return;
+  try {
+    const data = await api("/settings/public");
+    links.forEach((link) => {
+      const key = link.dataset.communityUrl;
+      const url = data.communityLinks[key] || "#";
+      if (data.requireCommunityLogin && !authToken) {
+        link.href = "login.html";
+        link.textContent = `Login to ${link.textContent}`;
+      } else {
+        link.href = url;
+      }
     });
-    document.querySelector("[data-gate-note]").textContent = "Demo registered account active. Backend route: POST /api/communities/:id/join";
-  });
+    const note = document.querySelector("[data-gate-note]");
+    if (note) note.textContent = data.requireCommunityLogin ? "Login required before joining communities." : "Community links are loaded from backend .env settings.";
+  } catch {
+    links.forEach((link) => {
+      if (!link.href || link.getAttribute("href") === "#") link.href = "login.html";
+    });
+  }
 }
 
 function attachBookingButtons() {
@@ -165,13 +251,46 @@ function attachBookingButtons() {
   });
 }
 
-async function openModal(button) {
+function attachPaymentButtons() {
+  document.querySelectorAll("[data-pay-gateway]").forEach((button) => {
+    button.addEventListener("click", async () => {
+      const output = document.querySelector("[data-payment-api-result]");
+      if (!authToken) {
+        output.textContent = "Please login first. Redirecting...";
+        setTimeout(() => { location.href = "login.html"; }, 700);
+        return;
+      }
+      try {
+        output.textContent = "Creating checkout...";
+        const data = await api("/payments/checkout", {
+          method: "POST",
+          body: JSON.stringify({ ...currentCheckout, gateway: button.dataset.payGateway })
+        });
+        output.textContent = data.payment.checkoutUrl
+          ? `Checkout created. Open: ${data.payment.checkoutUrl}`
+          : `Demo checkout created: ${data.payment.providerRef}`;
+        if (data.payment.checkoutUrl) window.open(data.payment.checkoutUrl, "_blank", "noopener,noreferrer");
+      } catch (error) {
+        output.textContent = error.message;
+      }
+    });
+  });
+}
+
+function openModal(button) {
   const modal = document.querySelector("[data-modal]");
   if (!modal) return;
-  modal.querySelector("[data-modal-title]").textContent = button.dataset.title || "InvestMe payment";
-  modal.querySelector("[data-modal-price]").textContent = `$${button.dataset.price || "0"}`;
+  currentCheckout = {
+    amount: Number(button.dataset.price || "0"),
+    description: button.dataset.title || "InvestMe payment",
+    mentorId: button.dataset.mentorId || "",
+    type: button.dataset.type || "",
+    plan: button.dataset.plan || ""
+  };
+  modal.querySelector("[data-modal-title]").textContent = currentCheckout.description;
+  modal.querySelector("[data-modal-price]").textContent = `$${currentCheckout.amount}`;
   const apiText = modal.querySelector("[data-payment-api-result]");
-  if (apiText) apiText.textContent = "Payment API ready. Login token required for live checkout.";
+  if (apiText) apiText.textContent = authToken ? "Choose Stripe or Razorpay to create checkout." : "Login required before live checkout.";
   modal.classList.add("open");
 }
 

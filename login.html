@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="en">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>InvestMe Login</title><link rel="stylesheet" href="assets/styles.css"><script defer src="assets/app.js"></script></head>
+<body>
+  <header class="site-header"><div class="nav-shell"><a class="brand" href="index.html"><img class="brand-logo" src="assets/logo-mark.png" alt="InvestMe logo"><span>InvestMe</span></a><nav class="nav-links"><a href="index.html">Home</a><a href="about.html">About</a><a href="mentors.html">Mentors</a><a href="investors.html">Investors</a><a href="community.html">Community</a><a href="pricing.html">Pricing</a><a href="dashboard.html">Dashboard</a></nav><div class="nav-actions"><button class="icon-btn" data-theme-toggle>T</button><button class="icon-btn mobile-menu" data-menu-toggle>M</button></div></div></header>
+  <main>
+    <section class="page-hero"><div class="container"><p class="eyebrow">Authentication</p><h1>Login or create your InvestMe account.</h1><p class="lead">JWT authentication is connected to backend local database. Demo admin: admin@investme.demo / Admin@123</p></div></section>
+    <section class="section"><div class="container grid grid-2">
+      <article class="panel">
+        <span class="kicker">Login</span>
+        <h2>Existing user</h2>
+        <form class="auth-form" data-login-form>
+          <div class="field"><label>Email</label><input name="email" type="email" value="founder@investme.demo" required></div>
+          <div class="field"><label>Password</label><input name="password" type="password" value="Founder@123" required></div>
+          <button class="btn btn-primary" type="submit">Login</button>
+        </form>
+      </article>
+      <article class="panel">
+        <span class="kicker">Signup</span>
+        <h2>New account</h2>
+        <form class="auth-form" data-signup-form>
+          <div class="field"><label>Name</label><input name="name" required></div>
+          <div class="field"><label>Email</label><input name="email" type="email" required></div>
+          <div class="field"><label>Password</label><input name="password" type="password" minlength="8" required></div>
+          <div class="field"><label>Role</label><select name="role"><option value="FOUNDER">Founder/User</option><option value="MENTOR">Mentor</option><option value="INVESTOR">Investor</option></select></div>
+          <div class="field"><label>Startup / Company</label><input name="startup"></div>
+          <button class="btn btn-primary" type="submit">Create Account</button>
+        </form>
+      </article>
+      <p class="api-status" data-auth-output></p>
+    </div></section>
+  </main>
+  <footer class="site-footer"><div class="container">InvestMe authentication is powered by backend JWT APIs.</div></footer>
+</body>
+</html>

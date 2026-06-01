@@ -1,6 +1,6 @@
 # InvestMe Backend
 
-The backend is implemented in `backend/` with Node.js, Express, Socket.IO, Prisma schema, and env-based configuration.
+The backend is implemented in `backend/` with Node.js, Express, Socket.IO, JWT authentication, local file database, and env-based configuration.
 
 ## Env Keys
 
@@ -8,16 +8,16 @@ Use `backend/.env` for local development and `backend/.env.example` as the templ
 
 Important variables:
 
-- `DATABASE_URL`
+- `DB_FILE`
 - `JWT_SECRET`
-- `SUPABASE_URL`
-- `SUPABASE_ANON_KEY`
 - `STRIPE_SECRET_KEY`
 - `STRIPE_WEBHOOK_SECRET`
 - `RAZORPAY_KEY_ID`
 - `RAZORPAY_KEY_SECRET`
 - `OPENAI_API_KEY`
-- `REDIS_URL`
+- `WHATSAPP_COMMUNITY_URL`
+- `TELEGRAM_COMMUNITY_URL`
+- `FOUNDER_GROUP_URL`
 
 ## API Groups
 
