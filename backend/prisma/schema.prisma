@@ -1,0 +1,175 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  FOUNDER
+  MENTOR
+  INVESTOR
+  ADMIN
+}
+
+enum SessionType {
+  MESSAGE
+  VOICE
+  VIDEO
+}
+
+enum PaymentStatus {
+  CREATED
+  PAID
+  FAILED
+  REFUNDED
+  DEMO_CREATED
+}
+
+model User {
+  id            String         @id @default(cuid())
+  name          String
+  email         String         @unique
+  passwordHash  String?
+  role          Role           @default(FOUNDER)
+  phone         String?
+  plan          String         @default("FREE")
+  startup       String?
+  mentor        Mentor?
+  investor      Investor?
+  sessions      Session[]      @relation("FounderSessions")
+  payments      Payment[]
+  reviews       Review[]
+  notifications Notification[]
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+}
+
+model Mentor {
+  id              String    @id @default(cuid())
+  userId          String    @unique
+  user            User      @relation(fields: [userId], references: [id])
+  designation     String
+  experienceYears Int
+  industry        String
+  expertise       String[]
+  rating          Float     @default(0)
+  fee             Int
+  availability    String
+  status          String    @default("PENDING")
+  sessions        Session[] @relation("MentorSessions")
+}
+
+model Investor {
+  id                  String   @id @default(cuid())
+  userId              String?  @unique
+  user                User?    @relation(fields: [userId], references: [id])
+  investorType        String
+  investmentInterests String
+  preferredSectors    String[]
+  ticketMin           Int
+  ticketMax           Int
+  portfolioStartups   String[]
+  createdAt           DateTime @default(now())
+}
+
+model Session {
+  id          String      @id @default(cuid())
+  founderId   String
+  mentorId    String
+  founder     User        @relation("FounderSessions", fields: [founderId], references: [id])
+  mentor      Mentor      @relation("MentorSessions", fields: [mentorId], references: [id])
+  type        SessionType
+  scheduledAt DateTime?
+  durationMin Int         @default(60)
+  price       Int
+  status      String      @default("PAYMENT_REQUIRED")
+  meetingUrl  String?
+  booking     Booking?
+  payment     Payment?
+  messages    Message[]
+  reviews     Review[]
+  createdAt   DateTime    @default(now())
+}
+
+model Booking {
+  id                 String   @id @default(cuid())
+  sessionId          String   @unique
+  session            Session  @relation(fields: [sessionId], references: [id])
+  requestedSlot      DateTime?
+  notes              String?
+  confirmationStatus String   @default("PENDING")
+  createdAt          DateTime @default(now())
+}
+
+model Payment {
+  id            String        @id @default(cuid())
+  userId        String
+  user          User          @relation(fields: [userId], references: [id])
+  sessionId     String?       @unique
+  session       Session?      @relation(fields: [sessionId], references: [id])
+  gateway       String
+  amount        Int
+  currency      String
+  status        PaymentStatus @default(CREATED)
+  providerRef   String?
+  webhookStatus String?
+  metadata      Json?
+  createdAt     DateTime      @default(now())
+}
+
+model Review {
+  id        String   @id @default(cuid())
+  sessionId String
+  session   Session  @relation(fields: [sessionId], references: [id])
+  reviewerId String
+  reviewer  User     @relation(fields: [reviewerId], references: [id])
+  rating    Int
+  body      String
+  status    String   @default("PUBLISHED")
+  createdAt DateTime @default(now())
+}
+
+model Message {
+  id          String   @id @default(cuid())
+  sessionId   String?
+  session     Session? @relation(fields: [sessionId], references: [id])
+  senderId    String
+  receiverId  String
+  body        String
+  paidUnlockId String?
+  readAt      DateTime?
+  createdAt   DateTime @default(now())
+}
+
+model Notification {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+  type      String
+  payload   Json
+  readAt    DateTime?
+  createdAt DateTime @default(now())
+}
+
+model Community {
+  id          String   @id @default(cuid())
+  name        String
+  channelType String
+  joinPolicy  String   @default("REGISTERED_ONLY")
+  externalUrl String?
+  status      String   @default("ACTIVE")
+  members     CommunityMembership[]
+  createdAt   DateTime @default(now())
+}
+
+model CommunityMembership {
+  id          String    @id @default(cuid())
+  communityId String
+  community   Community @relation(fields: [communityId], references: [id])
+  userId      String
+  role        String    @default("MEMBER")
+  joinedAt    DateTime  @default(now())
+}
