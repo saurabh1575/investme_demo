@@ -1,12 +1,22 @@
-const API_URL = localStorage.getItem("investme-api-url") || "http://localhost:5000/api";
+const DEFAULT_API_URL = location.protocol === "file:" || location.port !== "5000"
+  ? "http://localhost:5000/api"
+  : `${location.origin}/api`;
+const API_URL = localStorage.getItem("investme-api-url") || DEFAULT_API_URL;
 let authToken = localStorage.getItem("investme-token") || "";
 let currentUser = JSON.parse(localStorage.getItem("investme-user") || "null");
 let currentCheckout = null;
+let publicSettings = {};
 
 const fallbackMentors = [
   { id: "maya-rao", name: "Maya Rao", designation: "Former Fintech CEO", experienceYears: 18, industry: "Fintech", expertise: ["Fundraising", "GTM", "Board strategy"], rating: 4.96, fee: 149, availability: "Available today", avatar: 2 },
   { id: "jun-park", name: "Jun Park", designation: "Angel Investor", experienceYears: 12, industry: "AI", expertise: ["AI products", "Pitch review", "MVP scope"], rating: 4.89, fee: 99, availability: "Available tomorrow", avatar: 3 },
   { id: "richard-hayes", name: "Richard Hayes", designation: "Retired Fortune 500 CFO", experienceYears: 31, industry: "B2B", expertise: ["Financial models", "Governance", "Debt strategy"], rating: 4.92, fee: 199, availability: "3 slots left", avatar: 6 }
+];
+
+const fallbackInvestors = [
+  { id: "northline-angels", name: "Northline Angels", type: "Angel Syndicate", investmentInterests: "Fintech, SaaS, AI infrastructure", preferredSectors: ["B2B SaaS", "Payments", "RegTech"], ticketMin: 50000, ticketMax: 250000 },
+  { id: "catalyst-seed-fund", name: "Catalyst Seed Fund", type: "Venture Capital", investmentInterests: "Climate, mobility, industrial software", preferredSectors: ["Climate", "Logistics", "Energy"], ticketMin: 500000, ticketMax: 2000000 },
+  { id: "csuite-circle", name: "C-Suite Circle", type: "Executive Network", investmentInterests: "Retired executives advising B2B startups", preferredSectors: ["B2B", "Enterprise", "Consumer"], ticketMin: 25000, ticketMax: 150000 }
 ];
 
 const plans = {
@@ -26,14 +36,27 @@ document.addEventListener("DOMContentLoaded", () => {
   setupNav();
   setupTheme();
   setupApiStatus();
+  setupMobileMenu();
   setupAuthForms();
   setupAuthStatus();
-  setupMentors();
-  setupPricing();
-  setupDashboards();
-  setupCommunityLinks();
-  attachBookingButtons();
-  attachPaymentButtons();
+  setupNavVisibility();
+  
+  initCustomSelects();
+
+  const isCheckout = document.querySelector("[data-checkout-summary]");
+  if (isCheckout) {
+    setupCheckout();
+  } else {
+    setupMentors();
+    setupInvestors();
+    setupPricing();
+    setupDashboards();
+    setupDashboardData();
+    setupCommunityLinks();
+    attachBookingButtons();
+    attachPaymentButtons();
+  }
+  
   document.addEventListener("click", (event) => {
     if (event.target.matches("[data-modal-close]") || event.target.classList.contains("modal")) closeModal();
     if (event.target.matches("[data-logout]")) logout();
@@ -45,18 +68,88 @@ function setupNav() {
   document.querySelectorAll(".nav-links a").forEach((link) => {
     if (link.getAttribute("href") === page) link.classList.add("active");
   });
+  if (currentUser && currentUser.role === "ADMIN") {
+    document.querySelectorAll("[data-admin-only]").forEach(el => el.style.display = "");
+  }
+}
+
+function setupMobileMenu() {
   document.querySelector("[data-menu-toggle]")?.addEventListener("click", () => {
     document.querySelector(".nav-links")?.classList.toggle("open");
   });
 }
 
+function money(value) {
+  return `$${Number(value || 0).toLocaleString()}`;
+}
+
 function setupTheme() {
+  const toggleBtn = document.querySelector("[data-theme-toggle]");
+  if (!toggleBtn) return;
   const saved = localStorage.getItem("investme-theme");
   if (saved) document.documentElement.dataset.theme = saved;
-  document.querySelector("[data-theme-toggle]")?.addEventListener("click", () => {
-    const next = document.documentElement.dataset.theme === "dark" ? "light" : "dark";
+  updateThemeIcon();
+  toggleBtn.addEventListener("click", () => {
+    const current = document.documentElement.dataset.theme;
+    const next = current === "dark" ? "light" : "dark";
     document.documentElement.dataset.theme = next;
     localStorage.setItem("investme-theme", next);
+    updateThemeIcon();
+  });
+}
+
+function initCustomSelects() {
+  document.querySelectorAll("select").forEach(select => {
+    if (select.nextElementSibling && select.nextElementSibling.classList.contains("custom-select-wrapper")) return;
+    
+    select.style.display = "none";
+    
+    const wrapper = document.createElement("div");
+    wrapper.className = "custom-select-wrapper";
+    
+    const trigger = document.createElement("div");
+    trigger.className = "custom-select-trigger input";
+    const selectedOption = select.options[select.selectedIndex];
+    trigger.innerHTML = `<span>${selectedOption ? selectedOption.text : ""}</span><span class="chevron">▼</span>`;
+    
+    const optionsDiv = document.createElement("div");
+    optionsDiv.className = "custom-select-options";
+    
+    Array.from(select.options).forEach(opt => {
+      const optionEl = document.createElement("div");
+      optionEl.className = "custom-option";
+      if(opt.selected) optionEl.classList.add("selected");
+      optionEl.textContent = opt.text;
+      optionEl.dataset.value = opt.value;
+      
+      optionEl.addEventListener("click", () => {
+        select.value = opt.value;
+        trigger.querySelector("span").textContent = opt.text;
+        
+        optionsDiv.querySelectorAll(".custom-option").forEach(el => el.classList.remove("selected"));
+        optionEl.classList.add("selected");
+        
+        wrapper.classList.remove("open");
+        select.dispatchEvent(new Event("change"));
+      });
+      optionsDiv.appendChild(optionEl);
+    });
+    
+    wrapper.appendChild(trigger);
+    wrapper.appendChild(optionsDiv);
+    select.parentNode.insertBefore(wrapper, select.nextSibling);
+    
+    trigger.addEventListener("click", (e) => {
+      e.stopPropagation();
+      document.querySelectorAll(".custom-select-wrapper").forEach(w => {
+        if(w !== wrapper) w.classList.remove("open");
+      });
+      wrapper.classList.toggle("open");
+    });
+  });
+  
+  document.addEventListener("click", () => {
+    document.querySelectorAll(".custom-select-wrapper").forEach(w => w.classList.remove("open"));
   });
 }
 
@@ -105,6 +198,34 @@ function setupAuthForms() {
   const loginForm = document.querySelector("[data-login-form]");
   const signupForm = document.querySelector("[data-signup-form]");
   const output = document.querySelector("[data-auth-output]");
+
+  // Auth View Toggling
+  document.querySelectorAll("[data-auth-toggle]").forEach(trigger => {
+    trigger.addEventListener("click", (e) => {
+      e.preventDefault();
+      const targetView = e.target.dataset.authToggle; // login, signup, or forgot
+      
+      const views = ["login", "signup", "forgot"];
+      views.forEach(view => {
+        const el = document.getElementById(`view-${view}`);
+        if (el) el.style.display = view === targetView ? "block" : "none";
+      });
+      if (output) output.textContent = "";
+    });
+  });
+
+  document.querySelectorAll(".toggle-password").forEach(btn => {
+    btn.addEventListener("click", () => {
+      const input = btn.previousElementSibling;
+      if (input.type === "password") {
+        input.type = "text";
+        btn.textContent = "🙈";
+      } else {
+        input.type = "password";
+        btn.textContent = "👁";
+      }
+    });
+  });
 
   loginForm?.addEventListener("submit", async (event) => {
     event.preventDefault();
@@ -188,6 +309,34 @@ function mentorCard(mentor) {
   `;
 }
 
+async function setupInvestors() {
+  const grid = document.querySelector("[data-investor-grid]");
+  if (!grid) return;
+  let investors = fallbackInvestors;
+  try {
+    const data = await api("/investors");
+    investors = data.investors;
+  } catch {
+    investors = fallbackInvestors;
+  }
+  grid.innerHTML = investors.map(investorCard).join("");
+  attachBookingButtons();
+}
+
+function investorCard(investor) {
+  const sectors = investor.preferredSectors || [];
+  return `
+    <article class="card">
+      <span class="kicker">${investor.type}</span>
+      <h3>${investor.name}</h3>
+      <p>${investor.investmentInterests}</p>
+      <div class="mentor-meta"><span>${money(investor.ticketMin)}</span><span>${money(investor.ticketMax)}</span></div>
+      <ul class="tags">${sectors.map((item) => `<li class="tag">${item}</li>`).join("")}</ul>
+      <button class="btn btn-primary" data-book data-title="Connect request to ${investor.name}" data-price="49" data-investor-id="${investor.id}">Connect Request</button>
+    </article>
+  `;
+}
+
 function setupPricing() {
   const grid = document.querySelector("[data-pricing-grid]");
   if (!grid) return;
@@ -219,11 +368,71 @@ function setupDashboards() {
   });
 }
 
+async function setupDashboardData() {
+  const unauthorizedPanel = document.getElementById("admin-unauthorized");
+  const contentPanel = document.getElementById("admin-content");
+  
+  if (!unauthorizedPanel && !contentPanel) return;
+
+  if (!currentUser || currentUser.role !== "ADMIN") {
+    if (unauthorizedPanel) unauthorizedPanel.style.display = "block";
+    if (contentPanel) contentPanel.style.display = "none";
+    return;
+  }
+  
+  if (unauthorizedPanel) unauthorizedPanel.style.display = "none";
+  if (contentPanel) contentPanel.style.display = "block";
+
+  try {
+    const [overview, usersData] = await Promise.all([
+      api("/admin/overview"),
+      api("/admin/users")
+    ]);
+
+    const summary = document.querySelector("[data-admin-summary]");
+    if (summary) {
+      summary.innerHTML = `
+        <div class="metric-card"><strong>${overview.users}</strong><span>Total Users</span></div>
+        <div class="metric-card"><strong>${overview.mentors}</strong><span>Mentors</span></div>
+        <div class="metric-card"><strong>${overview.bookings}</strong><span>Sessions</span></div>
+        <div class="metric-card"><strong>${money(overview.revenue)}</strong><span>Revenue</span></div>
+      `;
+    }
+
+    const integrations = document.querySelector("[data-admin-integrations]");
+    if (integrations) {
+      const ints = overview.integrations;
+      integrations.innerHTML = `
+        <li>Razorpay Gateway: ${ints.razorpayConfigured ? 'Active' : 'Missing Env'}</li>
+        <li>Groq AI: ${ints.groqConfigured ? 'Active' : 'Missing Env'}</li>
+        <li>WhatsApp Community: ${ints.whatsapp ? 'Configured' : 'Not Set'}</li>
+        <li>Telegram Community: ${ints.telegram ? 'Configured' : 'Not Set'}</li>
+      `;
+    }
+
+    const usersTable = document.querySelector("[data-admin-users]");
+    if (usersTable) {
+      usersTable.innerHTML = usersData.users.map(u => `
+        <tr>
+          <td><span class="kicker" style="font-size: 0.6rem;">${u.id.slice(0, 8)}...</span></td>
+          <td style="font-weight: 600;">${u.name}</td>
+          <td style="color: var(--muted);">${u.email}</td>
+          <td><span class="tag">${u.role}</span></td>
+          <td style="color: var(--muted); font-size: 0.85rem;">${new Date(u.createdAt).toLocaleDateString()}</td>
+        </tr>
+      `).join("");
+    }
+  } catch (error) {
+    console.error("Failed to load admin data:", error);
+  }
+}
+
 async function setupCommunityLinks() {
   const links = document.querySelectorAll("[data-community-url]");
   if (!links.length) return;
   try {
     const data = await api("/settings/public");
+    publicSettings = data;
     links.forEach((link) => {
       const key = link.dataset.communityUrl;
       const url = data.communityLinks[key] || "#";
@@ -266,10 +475,41 @@ function attachPaymentButtons() {
           method: "POST",
           body: JSON.stringify({ ...currentCheckout, gateway: button.dataset.payGateway })
         });
-        output.textContent = data.payment.checkoutUrl
-          ? `Checkout created. Open: ${data.payment.checkoutUrl}`
-          : `Demo checkout created: ${data.payment.providerRef}`;
-        if (data.payment.checkoutUrl) window.open(data.payment.checkoutUrl, "_blank", "noopener,noreferrer");
+        
+        if (data.payment.providerRef && publicSettings.razorpayKeyId && data.payment.gateway !== "RAZORPAY_DEMO") {
+          output.textContent = "Opening Razorpay checkout...";
+          
+          if (!window.Razorpay) {
+            await new Promise((resolve) => {
+              const script = document.createElement("script");
+              script.src = "https://checkout.razorpay.com/v1/checkout.js";
+              script.onload = resolve;
+              document.body.appendChild(script);
+            });
+          }
+          
+          const options = {
+            key: publicSettings.razorpayKeyId,
+            amount: Math.round(Number(data.payment.amount) * 100),
+            currency: "INR",
+            name: "InvestMe Premium",
+            description: data.payment.description,
+            order_id: data.payment.providerRef,
+            handler: function (response) {
+              output.textContent = `Payment successful! Payment ID: ${response.razorpay_payment_id}`;
+              setTimeout(() => { location.reload(); }, 2000);
+            },
+            prefill: {
+              name: currentUser.name,
+              email: currentUser.email
+            },
+            theme: { color: "#6366f1" }
+          };
+          const rzp = new window.Razorpay(options);
+          rzp.open();
+        } else {
+          output.textContent = `Demo checkout created: ${data.payment.providerRef}`;
+        }
       } catch (error) {
         output.textContent = error.message;
       }
@@ -290,7 +530,7 @@ function openModal(button) {
   modal.querySelector("[data-modal-title]").textContent = currentCheckout.description;
   modal.querySelector("[data-modal-price]").textContent = `$${currentCheckout.amount}`;
   const apiText = modal.querySelector("[data-payment-api-result]");
-  if (apiText) apiText.textContent = authToken ? "Choose Stripe or Razorpay to create checkout." : "Login required before live checkout.";
+  if (apiText) apiText.textContent = authToken ? "Use Razorpay to create checkout." : "Login required before live checkout.";
   modal.classList.add("open");
 }
 

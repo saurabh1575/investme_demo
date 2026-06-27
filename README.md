@@ -2,15 +2,23 @@
 
 This is the dynamic InvestMe website with frontend + backend.
 
-## Frontend
+## Run The Dynamic Website
 
-Open `index.html` in browser.
+Start the backend first:
 
-The frontend connects to:
+```powershell
+cd C:\Users\pc\investme-fullstack\investme\backend
+npm.cmd install
+npm.cmd run dev
+```
+
+Then open:
 
 ```text
-http://localhost:5000/api
+http://localhost:5000/index.html
 ```
+
+The same server serves both frontend pages and backend APIs.
 
 Frontend pages:
 
@@ -41,7 +49,7 @@ npm run dev
 Paste everything in:
 
 ```text
-backend/.env
+C:\Users\pc\investme-fullstack\investme\backend\.env
 ```
 
 Important values:
@@ -51,6 +59,7 @@ WHATSAPP_COMMUNITY_URL=
 TELEGRAM_COMMUNITY_URL=
 FOUNDER_GROUP_URL=
 STRIPE_SECRET_KEY=
+STRIPE_WEBHOOK_SECRET=
 RAZORPAY_KEY_ID=
 RAZORPAY_KEY_SECRET=
 OPENAI_API_KEY=

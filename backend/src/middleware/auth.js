@@ -1,6 +1,12 @@
 import jwt from "jsonwebtoken";
 import { env } from "../config/env.js";
-import { publicUser, readDb } from "../db/fileDb.js";
+import { prisma } from "../db/prisma.js";
+
+function publicUser(user) {
+  if (!user) return null;
+  const { passwordHash, ...safeUser } = user;
+  return safeUser;
+}
 
 export function signToken(user) {
   return jwt.sign({ sub: user.id, role: user.role, email: user.email }, env.JWT_SECRET, {
@@ -15,8 +21,9 @@ export async function requireAuth(req, res, next) {
 
   try {
     const payload = jwt.verify(token, env.JWT_SECRET);
-    const db = await readDb();
-    const user = db.users.find((item) => item.id === payload.sub);
+    const user = await prisma.user.findUnique({
+      where: { id: payload.sub }
+    });
     if (!user) return res.status(401).json({ error: "Invalid token" });
     req.user = publicUser(user);
     return next();

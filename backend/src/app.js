@@ -2,6 +2,8 @@ import cors from "cors";
 import express from "express";
 import helmet from "helmet";
 import morgan from "morgan";
+import path from "node:path";
+import { fileURLToPath } from "node:url";
 import { allowedOrigins, env } from "./config/env.js";
 import { errorHandler, notFound } from "./middleware/error.js";
 import adminRoutes from "./routes/admin.routes.js";
@@ -16,6 +18,8 @@ import paymentRoutes from "./routes/payments.routes.js";
 import settingsRoutes from "./routes/settings.routes.js";
 
 export const app = express();
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+const frontendRoot = path.resolve(__dirname, "..", "..");
 
 app.use(helmet());
 app.use(morgan(env.NODE_ENV === "production" ? "combined" : "dev"));
@@ -43,6 +47,8 @@ app.use("/api/ai", aiRoutes);
 app.use("/api/messages", messageRoutes);
 app.use("/api/communities", communityRoutes);
 app.use("/api/admin", adminRoutes);
+
+app.use(express.static(frontendRoot));
 
 app.use(notFound);
 app.use(errorHandler);

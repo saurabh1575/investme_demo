@@ -18,15 +18,21 @@ Dynamic Node.js + Express backend for InvestMe.
 ## Setup
 
 ```powershell
-npm install
+npm.cmd install
 Copy-Item .env.example .env
-npm run dev
+npm.cmd run dev
 ```
 
 API runs at:
 
 ```text
 http://localhost:5000/api
+```
+
+Frontend runs from the same backend server:
+
+```text
+http://localhost:5000/index.html
 ```
 
 Health check:

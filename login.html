@@ -1,35 +1,99 @@
 <!doctype html>
 <html lang="en">
-<head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>InvestMe Login</title><link rel="stylesheet" href="assets/styles.css"><script defer src="assets/app.js"></script></head>
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>InvestMe Login</title><link rel="stylesheet" href="assets/styles.css?v=2"><script defer src="assets/app.js"></script></head>
 <body>
-  <header class="site-header"><div class="nav-shell"><a class="brand" href="index.html"><img class="brand-logo" src="assets/logo-mark.png" alt="InvestMe logo"><span>InvestMe</span></a><nav class="nav-links"><a href="index.html">Home</a><a href="about.html">About</a><a href="mentors.html">Mentors</a><a href="investors.html">Investors</a><a href="community.html">Community</a><a href="pricing.html">Pricing</a><a href="dashboard.html">Dashboard</a></nav><div class="nav-actions"><button class="icon-btn" data-theme-toggle>T</button><button class="icon-btn mobile-menu" data-menu-toggle>M</button></div></div></header>
+  <header class="site-header"><div class="nav-shell"><a class="brand" href="index.html"><img class="brand-logo" src="assets/logo-mark.png" alt="InvestMe logo"><span>InvestMe</span></a><nav class="nav-links"><a href="index.html">Home</a><a href="about.html">About</a><a href="mentors.html">Mentors</a><a href="investors.html">Investors</a><a href="community.html">Community</a><a href="pricing.html">Pricing</a><a href="dashboard.html" data-admin-only style="display: none;">Dashboard</a></nav><div class="nav-actions"><button class="icon-btn" data-theme-toggle>T</button><button class="icon-btn mobile-menu" data-menu-toggle>☰</button></div></div></header>
   <main>
-    <section class="page-hero"><div class="container"><p class="eyebrow">Authentication</p><h1>Login or create your InvestMe account.</h1><p class="lead">JWT authentication is connected to backend local database. Demo admin: admin@investme.demo / Admin@123</p></div></section>
-    <section class="section"><div class="container grid grid-2">
-      <article class="panel">
-        <span class="kicker">Login</span>
-        <h2>Existing user</h2>
-        <form class="auth-form" data-login-form>
-          <div class="field"><label>Email</label><input name="email" type="email" value="founder@investme.demo" required></div>
-          <div class="field"><label>Password</label><input name="password" type="password" value="Founder@123" required></div>
-          <button class="btn btn-primary" type="submit">Login</button>
-        </form>
-      </article>
-      <article class="panel">
-        <span class="kicker">Signup</span>
-        <h2>New account</h2>
-        <form class="auth-form" data-signup-form>
-          <div class="field"><label>Name</label><input name="name" required></div>
-          <div class="field"><label>Email</label><input name="email" type="email" required></div>
-          <div class="field"><label>Password</label><input name="password" type="password" minlength="8" required></div>
-          <div class="field"><label>Role</label><select name="role"><option value="FOUNDER">Founder/User</option><option value="MENTOR">Mentor</option><option value="INVESTOR">Investor</option></select></div>
-          <div class="field"><label>Startup / Company</label><input name="startup"></div>
-          <button class="btn btn-primary" type="submit">Create Account</button>
-        </form>
-      </article>
-      <p class="api-status" data-auth-output></p>
-    </div></section>
+    <section class="section" style="min-height: calc(100vh - 140px); display: flex; align-items: center; justify-content: center;">
+      <div class="auth-container panel" style="max-width: 440px; width: 100%;">
+        
+        <!-- Login View -->
+        <div id="view-login">
+          <div style="text-align: center; margin-bottom: 24px;">
+            <span class="kicker">Welcome back</span>
+            <h2>Sign in to InvestMe</h2>
+          </div>
+          
+          <div class="grid grid-2" style="margin-bottom: 24px;">
+            <button class="btn btn-secondary" onclick="alert('Google OAuth setup required.')">Google</button>
+            <button class="btn btn-secondary" onclick="alert('LinkedIn OAuth setup required.')">LinkedIn</button>
+          </div>
+          
+          <div style="text-align: center; margin-bottom: 24px; color: var(--muted); font-size: 0.85rem; text-transform: uppercase; letter-spacing: 1px;">
+            or continue with email
+          </div>
+
+          <form class="auth-form" data-login-form>
+            <div class="field"><label>Email</label><input name="email" type="email" value="founder@investme.demo" required></div>
+            <div class="field">
+              <div style="display: flex; justify-content: space-between;">
+                <label>Password</label>
+                <a href="#" data-auth-toggle="forgot" style="font-size: 0.85rem; color: var(--primary);">Forgot password?</a>
+              </div>
+              <input name="password" type="password" value="Founder@123" required>
+            </div>
+            <button class="btn btn-primary" type="submit" style="width: 100%;">Sign in</button>
+          </form>
+
+          <p style="text-align: center; margin-top: 24px; font-size: 0.95rem;">
+            Don't have an account? <a href="#" data-auth-toggle="signup" style="color: var(--primary); font-weight: 600;">Sign up</a>
+          </p>
+        </div>
+
+        <!-- Signup View -->
+        <div id="view-signup" style="display: none;">
+          <div style="text-align: center; margin-bottom: 24px;">
+            <span class="kicker">Join the community</span>
+            <h2>Create an account</h2>
+          </div>
+          
+          <form class="auth-form" data-signup-form>
+            <div class="field"><label>Name</label><input name="name" required></div>
+            <div class="field"><label>Email</label><input name="email" type="email" required></div>
+            <div class="field">
+              <label>Password</label>
+              <div class="password-wrap">
+                <input name="password" type="password" minlength="8" required>
+                <button type="button" class="icon-btn toggle-password">👁</button>
+              </div>
+            </div>
+            <div class="field"><label>Role</label><select name="role" class="input" required>
+              <option value="FOUNDER">Founder / Startup</option>
+              <option value="USER">Normal User</option>
+              <option value="MENTOR">Mentor</option>
+              <option value="INVESTOR">Investor</option>
+            </select></div>
+            <div class="field"><label>Startup / Company Name</label><input name="startup"></div>
+            <button class="btn btn-primary" type="submit" style="width: 100%;">Create Account</button>
+          </form>
+
+          <p style="text-align: center; margin-top: 24px; font-size: 0.95rem;">
+            Already have an account? <a href="#" data-auth-toggle="login" style="color: var(--primary); font-weight: 600;">Sign in</a>
+          </p>
+        </div>
+
+        <!-- Forgot Password View -->
+        <div id="view-forgot" style="display: none;">
+          <div style="text-align: center; margin-bottom: 24px;">
+            <span class="kicker">Account recovery</span>
+            <h2>Reset password</h2>
+            <p style="color: var(--muted); font-size: 0.95rem; margin-top: 8px;">Enter your email and we'll send you a link to reset your password.</p>
+          </div>
+          
+          <form class="auth-form" onsubmit="event.preventDefault(); alert('Reset link sent to your email.'); document.querySelector('[data-auth-toggle=\'login\']').click();">
+            <div class="field"><label>Email address</label><input name="email" type="email" required></div>
+            <button class="btn btn-primary" type="submit" style="width: 100%;">Send Reset Link</button>
+          </form>
+
+          <p style="text-align: center; margin-top: 24px; font-size: 0.95rem;">
+            <a href="#" data-auth-toggle="login" style="color: var(--primary); font-weight: 600;">← Back to Sign in</a>
+          </p>
+        </div>
+
+        <p class="api-status" data-auth-output style="text-align: center; margin-top: 16px;"></p>
+      </div>
+    </section>
   </main>
-  <footer class="site-footer"><div class="container">InvestMe authentication is powered by backend JWT APIs.</div></footer>
+  <footer class="site-footer"><div class="container" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap;"><span>InvestMe authentication is powered by backend JWT APIs.</span><div style="display: flex; gap: 16px; margin-top: 10px;"><a href="https://linkedin.com/company/investme" target="_blank" style="color: var(--primary); text-decoration: none; font-weight: 600;">LinkedIn</a><a href="https://instagram.com/investme" target="_blank" style="color: var(--primary); text-decoration: none; font-weight: 600;">Instagram</a></div></div></footer>
 </body>
 </html>

@@ -3,37 +3,22 @@ generator client {
 }
 
 datasource db {
-  provider = "postgresql"
-  url      = env("DATABASE_URL")
+  provider = "sqlite"
+  url      = "file:./dev.db"
 }
 
-enum Role {
-  FOUNDER
-  MENTOR
-  INVESTOR
-  ADMIN
-}
 
-enum SessionType {
-  MESSAGE
-  VOICE
-  VIDEO
-}
 
-enum PaymentStatus {
-  CREATED
-  PAID
-  FAILED
-  REFUNDED
-  DEMO_CREATED
-}
+
+
+
 
 model User {
   id            String         @id @default(cuid())
   name          String
   email         String         @unique
   passwordHash  String?
-  role          Role           @default(FOUNDER)
+  role String @default("FOUNDER")
   phone         String?
   plan          String         @default("FREE")
   startup       String?
@@ -54,7 +39,7 @@ model Mentor {
   designation     String
   experienceYears Int
   industry        String
-  expertise       String[]
+  expertise       String
   rating          Float     @default(0)
   fee             Int
   availability    String
@@ -68,10 +53,10 @@ model Investor {
   user                User?    @relation(fields: [userId], references: [id])
   investorType        String
   investmentInterests String
-  preferredSectors    String[]
+  preferredSectors    String
   ticketMin           Int
   ticketMax           Int
-  portfolioStartups   String[]
+  portfolioStartups   String
   createdAt           DateTime @default(now())
 }
 
@@ -81,7 +66,7 @@ model Session {
   mentorId    String
   founder     User        @relation("FounderSessions", fields: [founderId], references: [id])
   mentor      Mentor      @relation("MentorSessions", fields: [mentorId], references: [id])
-  type        SessionType
+  type String
   scheduledAt DateTime?
   durationMin Int         @default(60)
   price       Int
@@ -113,10 +98,10 @@ model Payment {
   gateway       String
   amount        Int
   currency      String
-  status        PaymentStatus @default(CREATED)
+  status String @default("CREATED")
   providerRef   String?
   webhookStatus String?
-  metadata      Json?
+  metadata      String?
   createdAt     DateTime      @default(now())
 }
 
@@ -149,7 +134,7 @@ model Notification {
   userId    String
   user      User     @relation(fields: [userId], references: [id])
   type      String
-  payload   Json
+  payload   String
   readAt    DateTime?
   createdAt DateTime @default(now())
 }

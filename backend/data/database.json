@@ -1,0 +1,190 @@
+{
+  "users": [
+    {
+      "id": "usr_admin_demo",
+      "role": "ADMIN",
+      "name": "InvestMe Admin",
+      "email": "admin@investme.demo",
+      "passwordHash": "$2a$10$N8DcGw9b0W80ao9RdU1V.uLrLqauBeVa8JTzgjVk2U8qDhIVRsbuC",
+      "plan": "ADMIN",
+      "createdAt": "2026-06-05T07:28:02.753Z"
+    },
+    {
+      "id": "usr_founder_demo",
+      "role": "FOUNDER",
+      "name": "Demo Founder",
+      "email": "founder@investme.demo",
+      "passwordHash": "$2a$10$6CWEdJ.bhTOD0OL07UNbHucx55oNQEH0SvT5Gsrg5/TQxhRG8oh9W",
+      "plan": "PRO_FOUNDER",
+      "startup": "Fintech infrastructure",
+      "createdAt": "2026-06-05T07:28:02.858Z"
+    }
+  ],
+  "mentors": [
+    {
+      "id": "maya-rao",
+      "name": "Maya Rao",
+      "designation": "Former Fintech CEO",
+      "experienceYears": 18,
+      "industry": "Fintech",
+      "expertise": [
+        "Fundraising",
+        "GTM",
+        "Board strategy"
+      ],
+      "rating": 4.96,
+      "fee": 149,
+      "availability": "Available today",
+      "status": "VERIFIED"
+    },
+    {
+      "id": "jun-park",
+      "name": "Jun Park",
+      "designation": "Angel Investor",
+      "experienceYears": 12,
+      "industry": "AI",
+      "expertise": [
+        "AI products",
+        "Pitch review",
+        "MVP scope"
+      ],
+      "rating": 4.89,
+      "fee": 99,
+      "availability": "Available tomorrow",
+      "status": "VERIFIED"
+    },
+    {
+      "id": "richard-hayes",
+      "name": "Richard Hayes",
+      "designation": "Retired Fortune 500 CFO",
+      "experienceYears": 31,
+      "industry": "B2B",
+      "expertise": [
+        "Financial models",
+        "Governance",
+        "Debt strategy"
+      ],
+      "rating": 4.92,
+      "fee": 199,
+      "availability": "3 slots left",
+      "status": "VERIFIED"
+    }
+  ],
+  "investors": [
+    {
+      "id": "northline-angels",
+      "name": "Northline Angels",
+      "type": "Angel Syndicate",
+      "investmentInterests": "Fintech, SaaS, AI infrastructure",
+      "preferredSectors": [
+        "B2B SaaS",
+        "Payments",
+        "RegTech"
+      ],
+      "ticketMin": 50000,
+      "ticketMax": 250000,
+      "portfolioStartups": [
+        "Vaultly",
+        "KiteCredit",
+        "LedgerPilot"
+      ]
+    },
+    {
+      "id": "catalyst-seed-fund",
+      "name": "Catalyst Seed Fund",
+      "type": "Venture Capital",
+      "investmentInterests": "Climate, mobility, industrial software",
+      "preferredSectors": [
+        "Climate",
+        "Logistics",
+        "Energy"
+      ],
+      "ticketMin": 500000,
+      "ticketMax": 2000000,
+      "portfolioStartups": [
+        "ThermaLoop",
+        "CarbonDock",
+        "WattWise"
+      ]
+    }
+  ],
+  "communities": [
+    {
+      "id": "whatsapp",
+      "name": "WhatsApp Community",
+      "channelType": "WHATSAPP",
+      "urlEnv": "WHATSAPP_COMMUNITY_URL",
+      "registeredOnly": false
+    },
+    {
+      "id": "telegram",
+      "name": "Telegram Community",
+      "channelType": "TELEGRAM",
+      "urlEnv": "TELEGRAM_COMMUNITY_URL",
+      "registeredOnly": false
+    },
+    {
+      "id": "founders",
+      "name": "Founder Groups",
+      "channelType": "TELEGRAM",
+      "urlEnv": "FOUNDER_GROUP_URL",
+      "registeredOnly": false
+    }
+  ],
+  "bookings": [],
+  "payments": [
+    {
+      "id": "d6a62b12-b5a3-40b6-b5ea-cd64330d4717",
+      "createdAt": "2026-06-05T07:28:04.146Z",
+      "userId": "usr_founder_demo",
+      "gateway": "STRIPE_DEMO",
+      "amount": 49,
+      "currency": "USD",
+      "description": "Pro Founder plan",
+      "status": "DEMO_CREATED",
+      "providerRef": "demo_stripe_1780644484145",
+      "checkoutUrl": "",
+      "metadata": {
+        "bookingId": "",
+        "plan": ""
+      }
+    },
+    {
+      "id": "285af0a1-ef8d-45e2-abe5-0bcbe1a9956d",
+      "createdAt": "2026-06-05T07:29:18.872Z",
+      "userId": "usr_founder_demo",
+      "gateway": "STRIPE_DEMO",
+      "amount": 49,
+      "currency": "USD",
+      "description": "Pro Founder plan",
+      "status": "DEMO_CREATED",
+      "providerRef": "demo_stripe_1780644558870",
+      "checkoutUrl": "",
+      "metadata": {
+        "bookingId": "",
+        "plan": ""
+      }
+    },
+    {
+      "id": "3b4d1273-a3fc-4fc7-88ab-c682bc617b1b",
+      "createdAt": "2026-06-05T07:30:07.145Z",
+      "userId": "usr_founder_demo",
+      "gateway": "STRIPE_DEMO",
+      "amount": 49,
+      "currency": "USD",
+      "description": "Pro Founder plan",
+      "status": "DEMO_CREATED",
+      "providerRef": "demo_stripe_1780644607142",
+      "checkoutUrl": "",
+      "metadata": {
+        "bookingId": "",
+        "plan": ""
+      }
+    }
+  ],
+  "messages": [],
+  "notifications": [],
+  "settings": {
+    "requireCommunityLogin": true
+  }
+}

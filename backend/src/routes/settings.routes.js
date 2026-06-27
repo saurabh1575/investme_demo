@@ -14,10 +14,10 @@ router.get("/public", (req, res) => {
       founders: env.FOUNDER_GROUP_URL
     },
     integrations: {
-      stripeConfigured: Boolean(env.STRIPE_SECRET_KEY),
-      razorpayConfigured: Boolean(env.RAZORPAY_KEY_ID && env.RAZORPAY_KEY_SECRET),
-      openaiConfigured: Boolean(env.OPENAI_API_KEY)
-    }
+      razorpayConfigured: Boolean(env.RAZORPAY_KEY_ID),
+      groqConfigured: Boolean(env.GROQ_API_KEY)
+    },
+    razorpayKeyId: env.RAZORPAY_KEY_ID || null
   });
 });
 
